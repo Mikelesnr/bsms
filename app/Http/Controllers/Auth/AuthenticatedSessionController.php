@@ -49,4 +49,43 @@ class AuthenticatedSessionController extends Controller
 
         return redirect('/');
     }
+
+     /**
+     * Handle an API login request and issue Sanctum token.
+     */
+    public function apiLogin(LoginRequest $request)
+    {
+        $request->authenticate();
+
+        $user = $request->user();
+
+        // Issue token
+        $token = $user->createToken('api-token')->plainTextToken;
+
+        return response()->json([
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+                'email_verified' => $user->hasVerifiedEmail(),
+            ],
+            'token' => $token,
+        ]);
+    }
+
+    /**
+     * Handle an API logout request and revoke token.
+     */
+    public function apiLogout(Request $request)
+    {
+        // Revoke current token
+        $request->user()->currentAccessToken()->delete();
+
+        return response()->json([
+            'message' => 'Logged out successfully',
+        ]);
+    }
+
+
 }
